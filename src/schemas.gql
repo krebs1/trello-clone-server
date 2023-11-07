@@ -1,0 +1,345 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+input AddLabelToCardInput {
+  """Board id"""
+  boardId: String!
+
+  """Card id"""
+  cardId: String!
+
+  """Label id"""
+  labelId: String!
+
+  """List id"""
+  listId: String!
+}
+
+input AddMemberToBoardInput {
+  """Board id"""
+  boardId: String!
+
+  """User id"""
+  userId: String!
+}
+
+"""Background entity"""
+type Background {
+  """Background id"""
+  _id: String!
+
+  """Image path"""
+  imagePath: String!
+
+  """Preview path"""
+  previewPath: String!
+}
+
+"""Board entity"""
+type Board {
+  """Board id"""
+  _id: String!
+
+  """Board background"""
+  background: String
+
+  """Board labels"""
+  labels: [Label!]
+
+  """Board lists"""
+  lists: [List!]
+
+  """Board members"""
+  members: [Member!]
+
+  """Board name"""
+  name: String!
+}
+
+"""Card entity"""
+type Card {
+  """Card id"""
+  _id: String!
+
+  """Card name"""
+  description: String
+
+  """Card due date"""
+  dueDate: DateTime
+
+  """Card labels"""
+  labels: [String!]
+
+  """Card name"""
+  name: String!
+
+  """Card start date"""
+  startDate: DateTime
+}
+
+input ChangeCardDescriptionInput {
+  """Board id"""
+  boardId: String!
+
+  """Card id"""
+  cardId: String!
+
+  """Card description"""
+  description: String!
+
+  """List id"""
+  listId: String!
+}
+
+input ChangeCardOrderInput {
+  """Board id"""
+  boardId: String!
+
+  """First index"""
+  firstIndex: Float!
+
+  """List id"""
+  listId: String!
+
+  """Second index"""
+  secondIndex: Float!
+}
+
+"""Color entity"""
+type Color {
+  """Color id"""
+  _id: String!
+
+  """Color color code"""
+  color: String!
+
+  """Color name"""
+  name: String!
+}
+
+input CreateBoardInput {
+  """Board name"""
+  name: String!
+
+  """User id"""
+  userId: String!
+}
+
+input CreateCardInput {
+  """Board id"""
+  boardId: String!
+
+  """List id"""
+  listId: String!
+
+  """Card name"""
+  name: String!
+}
+
+input CreateLabelInput {
+  """Board id"""
+  boardId: String!
+
+  """Color id"""
+  colorId: String!
+
+  """Label text"""
+  text: String
+}
+
+input CreateListInput {
+  """Board id"""
+  boardId: String!
+
+  """List name"""
+  name: String!
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+input DeleteCardInput {
+  """Board id"""
+  boardId: String!
+
+  """Card id"""
+  cardId: String!
+
+  """List id"""
+  listId: String!
+}
+
+input DeleteLabelFromCardInput {
+  """Board id"""
+  boardId: String!
+
+  """Card id"""
+  cardId: String!
+
+  """Label id"""
+  labelId: String!
+
+  """List id"""
+  listId: String!
+}
+
+input DeleteLabelInput {
+  """Board id"""
+  boardId: String!
+
+  """Label id"""
+  labelId: String!
+}
+
+input DeleteListInput {
+  """Board id"""
+  boardId: String!
+
+  """List id"""
+  listId: String!
+}
+
+input DeleteMemberFromBoardInput {
+  """Board id"""
+  boardId: String!
+
+  """Member id"""
+  memberId: String!
+}
+
+input EditLabelInput {
+  """Board id"""
+  boardId: String!
+
+  """Color id"""
+  colorId: String!
+
+  """Label id"""
+  labelId: String!
+
+  """Label text"""
+  text: String
+}
+
+"""Label entity"""
+type Label {
+  """Label id"""
+  _id: String!
+
+  """Label color id"""
+  colorId: String
+
+  """Label text"""
+  text: String
+}
+
+"""List entity"""
+type List {
+  """List id"""
+  _id: String!
+
+  """List cards array"""
+  cards: [Card!]
+
+  """List name"""
+  name: String!
+}
+
+"""Member entity"""
+type Member {
+  """User id"""
+  _id: String!
+
+  """Member id"""
+  userId: String!
+}
+
+input MoveCardInput {
+  """Board id"""
+  boardId: String!
+
+  """Destination index"""
+  destinationIndex: Float!
+
+  """Destination list id"""
+  destinationListId: String!
+
+  """Source card id"""
+  sourceCardId: String!
+
+  """Source list id"""
+  sourceListId: String!
+}
+
+type Mutation {
+  addLabelToCard(addLabelToCardInput: AddLabelToCardInput!): Board!
+  addMemberToBoard(addMemberToBoardInput: AddMemberToBoardInput!): Board!
+  changeCardDescription(changeCardDescriptionInput: ChangeCardDescriptionInput!): Board!
+  changeCardOrder(changeCardOrderInput: ChangeCardOrderInput!): Board!
+  createBoard(createBoardInput: CreateBoardInput!): Board!
+  createCard(createCardInput: CreateCardInput!): Board!
+  createLabel(createLabelInput: CreateLabelInput!): Board!
+  createList(createListInput: CreateListInput!): Board!
+  deleteBoard(_id: String!): Board!
+  deleteCard(deleteCardInput: DeleteCardInput!): Board!
+  deleteLabel(deleteLabelInput: DeleteLabelInput!): Board!
+  deleteLabelFromCard(deleteLabelFromCardInput: DeleteLabelFromCardInput!): Board!
+  deleteList(deleteListInput: DeleteListInput!): Board!
+  deleteMemberFromBoard(deleteMemberFromBoardInput: DeleteMemberFromBoardInput!): Board!
+  editLabel(editLabelInput: EditLabelInput!): Board!
+  moveCard(moveCardInput: MoveCardInput!): Board!
+  renameBoard(renameBoardInput: RenameBoardInput!): Board!
+  renameCard(renameCardInput: RenameCardInput!): Board!
+  renameList(renameListInput: RenameListInput!): Board!
+}
+
+type Query {
+  findAllBackgrounds: [Background!]!
+  findAllBoards: [Board!]!
+  findAllColors: [Color!]!
+  findBoardById(_id: String!): Board!
+  findBoardByUserId(_id: String!): [Board!]!
+  findBoardsByName(name: String!): [Board!]!
+  findCardById(_id: String!): Board!
+  findColorById(_id: String!): Color!
+}
+
+input RenameBoardInput {
+  """Board id"""
+  _id: String!
+
+  """Board name"""
+  name: String!
+}
+
+input RenameCardInput {
+  """Board id"""
+  boardId: String!
+
+  """Card id"""
+  cardId: String!
+
+  """List id"""
+  listId: String!
+
+  """Card name"""
+  name: String!
+}
+
+input RenameListInput {
+  """Board id"""
+  boardId: String!
+
+  """List id"""
+  listId: String!
+
+  """List name"""
+  name: String!
+}
+
+type Subscription {
+  boardModified(boardId: String!): Board!
+}
