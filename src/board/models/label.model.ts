@@ -20,6 +20,9 @@ export class Label {
 	})
 	colorId: Types.ObjectId | null
 
+	@Field(type => Color, { description: 'Label color info', nullable: true })
+	colorInfo: Color | null
+
 	@Field({ description: 'Label text', nullable: true })
 	@Prop({ required: false, default: null })
 	text: string | null

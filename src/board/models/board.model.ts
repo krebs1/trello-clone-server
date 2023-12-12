@@ -4,6 +4,8 @@ import { Document, Types } from 'mongoose'
 import { List, ListSchema } from './list.model'
 import { Member, MemberSchema } from './member.model'
 import { Label, LabelSchema } from './label.model'
+import { Background } from '../../background/schemas/background.model'
+import { Role } from '../../role/models/role.model'
 
 export type BoardDocument = Board & Document
 
@@ -17,9 +19,12 @@ export class Board {
 	@Prop({ required: true })
 	name: string
 
-	@Field({ description: 'Board background', nullable: true })
-	@Prop({ default: null })
-	background: string | null
+	@Field(type => String, { description: 'Board background id' })
+	@Prop({ type: Types.ObjectId, ref: Background.name })
+	background: Types.ObjectId
+
+	@Field(type => Background, { description: 'Board background info' })
+	backgroundInfo: Background
 
 	@Field(type => [Member], { description: 'Board members', nullable: true })
 	@Prop({ type: [MemberSchema], default: null })
@@ -32,6 +37,14 @@ export class Board {
 	@Field(type => [Label], { description: 'Board labels', nullable: true })
 	@Prop({ type: [LabelSchema], default: null })
 	labels: Types.Array<Label> | null
+
+	@Field(type => String, { description: 'Board invite link', nullable: true })
+	@Prop({ default: null })
+	inviteLink: string | null
+
+	@Field(type => String, { description: 'Board default role' })
+	@Prop({ type: Types.ObjectId, ref: Role.name })
+	defaultRole: Types.ObjectId
 }
 
 export const BoardSchema = SchemaFactory.createForClass(Board)

@@ -22,9 +22,9 @@ export class User {
 	@Prop({ required: false })
 	image: string
 
-	@Field({ description: 'User emailVerified' })
+	@Field({ description: 'User emailVerified', nullable: true })
 	@Prop({ required: false })
-	emailVerified: Date
+	emailVerified: Date | null
 }
 
-export const UserModel = SchemaFactory.createForClass(User)
+export const UserSchema = SchemaFactory.createForClass(User)

@@ -5,6 +5,7 @@ import { MongooseModule } from '@nestjs/mongoose'
 import { Board, BoardSchema } from './models/board.model'
 import { JwtService } from '@nestjs/jwt'
 import { SessionModule } from '../session/session.module'
+import { HasAccessGuard } from '../guards/hasAccessGuard'
 
 @Module({
 	providers: [BoardResolver, BoardService, JwtService],

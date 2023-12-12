@@ -4,9 +4,9 @@ import { Types } from 'mongoose'
 
 export type BackgroundDocument = Background & Document
 
-@ObjectType({description: 'Background entity'})
+@ObjectType({ description: 'Background entity' })
 @Schema()
-export class Background{
+export class Background {
 	@Field(type => String, { description: 'Background id' })
 	_id: Types.ObjectId
 

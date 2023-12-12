@@ -41,8 +41,17 @@ type Board {
   """Board id"""
   _id: String!
 
-  """Board background"""
-  background: String
+  """Board background id"""
+  background: String!
+
+  """Board background info"""
+  backgroundInfo: Background!
+
+  """Board default role"""
+  defaultRole: String!
+
+  """Board invite link"""
+  inviteLink: String
 
   """Board labels"""
   labels: [Label!]
@@ -78,6 +87,23 @@ type Card {
   startDate: DateTime
 }
 
+input ChangeCardDateInput {
+  """Board id"""
+  boardId: String!
+
+  """Card id"""
+  cardId: String!
+
+  """Due date"""
+  dueDate: DateTime
+
+  """List id"""
+  listId: String!
+
+  """Start date"""
+  startDate: DateTime
+}
+
 input ChangeCardDescriptionInput {
   """Board id"""
   boardId: String!
@@ -106,6 +132,14 @@ input ChangeCardOrderInput {
   secondIndex: Float!
 }
 
+input ChangeDefaultRoleInput {
+  """Board id"""
+  boardId: String!
+
+  """Role id"""
+  roleId: String!
+}
+
 """Color entity"""
 type Color {
   """Color id"""
@@ -119,6 +153,9 @@ type Color {
 }
 
 input CreateBoardInput {
+  """Background id"""
+  backgroundId: String!
+
   """Board name"""
   name: String!
 
@@ -232,6 +269,9 @@ type Label {
   """Label color id"""
   colorId: String
 
+  """Label color info"""
+  colorInfo: Color
+
   """Label text"""
   text: String
 }
@@ -253,8 +293,14 @@ type Member {
   """User id"""
   _id: String!
 
+  """Role id"""
+  role: String!
+
   """Member id"""
   userId: String!
+
+  """User info"""
+  userInfo: User!
 }
 
 input MoveCardInput {
@@ -277,34 +323,43 @@ input MoveCardInput {
 type Mutation {
   addLabelToCard(addLabelToCardInput: AddLabelToCardInput!): Board!
   addMemberToBoard(addMemberToBoardInput: AddMemberToBoardInput!): Board!
+  changeCardDate(changeCardDateInput: ChangeCardDateInput!): Board!
   changeCardDescription(changeCardDescriptionInput: ChangeCardDescriptionInput!): Board!
   changeCardOrder(changeCardOrderInput: ChangeCardOrderInput!): Board!
+  changeDefaultRole(changeDefaultRoleInput: ChangeDefaultRoleInput!): Board!
   createBoard(createBoardInput: CreateBoardInput!): Board!
   createCard(createCardInput: CreateCardInput!): Board!
+  createInviteLink(_id: String!): Board!
   createLabel(createLabelInput: CreateLabelInput!): Board!
   createList(createListInput: CreateListInput!): Board!
   deleteBoard(_id: String!): Board!
   deleteCard(deleteCardInput: DeleteCardInput!): Board!
+  deleteInviteLink(_id: String!): Board!
   deleteLabel(deleteLabelInput: DeleteLabelInput!): Board!
   deleteLabelFromCard(deleteLabelFromCardInput: DeleteLabelFromCardInput!): Board!
   deleteList(deleteListInput: DeleteListInput!): Board!
   deleteMemberFromBoard(deleteMemberFromBoardInput: DeleteMemberFromBoardInput!): Board!
   editLabel(editLabelInput: EditLabelInput!): Board!
   moveCard(moveCardInput: MoveCardInput!): Board!
-  renameBoard(renameBoardInput: RenameBoardInput!): Board!
+  renameBoard(boardId: String!, renameBoardInput: RenameBoardInput!): Board!
   renameCard(renameCardInput: RenameCardInput!): Board!
   renameList(renameListInput: RenameListInput!): Board!
 }
 
 type Query {
+  aggregateBoardById(_id: String!): Board!
+  aggregateBoardByUserId(_id: String!): [Board!]!
   findAllBackgrounds: [Background!]!
   findAllBoards: [Board!]!
   findAllColors: [Color!]!
+  findAllRoles: [Role!]!
+  findBackgroundById(_id: String!): [Background!]!
   findBoardById(_id: String!): Board!
   findBoardByUserId(_id: String!): [Board!]!
   findBoardsByName(name: String!): [Board!]!
   findCardById(_id: String!): Board!
   findColorById(_id: String!): Color!
+  findRoleById(_id: String!): Role!
 }
 
 input RenameBoardInput {
@@ -340,6 +395,39 @@ input RenameListInput {
   name: String!
 }
 
+"""Role entity"""
+type Role {
+  """Role id"""
+  _id: String!
+
+  """Role can be name"""
+  canBeName: String!
+
+  """Role description"""
+  description: String!
+
+  """Role name"""
+  name: String!
+}
+
 type Subscription {
   boardModified(boardId: String!): Board!
+}
+
+"""User entity"""
+type User {
+  """User id"""
+  _id: String!
+
+  """User email"""
+  email: String!
+
+  """User emailVerified"""
+  emailVerified: DateTime
+
+  """User image"""
+  image: String!
+
+  """User name"""
+  name: String!
 }

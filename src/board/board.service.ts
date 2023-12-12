@@ -20,6 +20,10 @@ import { DeleteMemberFromBoardInput } from './dto/delete-member-from-board.input
 import { ChangeCardOrderInput } from './dto/change-card-order.input'
 import { MoveCardInput } from './dto/move-card.input'
 import { ChangeCardDescriptionInput } from './dto/change-card-description.input'
+import { ChangeCardDateInput } from './dto/change-card-date.input'
+import { ChangeDefaultRoleInput } from './dto/change-default-role.input'
+import { v4 as uuidv4 } from 'uuid'
+import { Member } from './models/member.model'
 
 @Injectable()
 export class BoardService {
@@ -28,6 +32,119 @@ export class BoardService {
 	) {}
 
 	//Board
+	async aggregateBoardById(_id: string): Promise<Board> {
+		const [board, err] = await this.model
+			.aggregate([
+				{ $match: { $expr: { $eq: ['$_id', new Types.ObjectId(_id)] } } },
+				{
+					$lookup: {
+						from: 'backgrounds',
+						localField: 'background',
+						foreignField: '_id',
+						as: 'backgroundInfo',
+					},
+				},
+				{ $unwind: { path: '$members', preserveNullAndEmptyArrays: true } },
+				{
+					$lookup: {
+						from: 'users',
+						localField: 'members.userId',
+						foreignField: '_id',
+						as: 'members.userInfo',
+					},
+				},
+				{ $unwind: { path: '$labels', preserveNullAndEmptyArrays: true } },
+				{
+					$lookup: {
+						from: 'colors',
+						localField: 'labels.colorId',
+						foreignField: '_id',
+						as: 'labels.colorInfo',
+					},
+				},
+				{
+					$unwind: {
+						path: '$labels.colorInfo',
+						preserveNullAndEmptyArrays: true,
+					},
+				},
+				{
+					$unwind: {
+						path: '$members.userInfo',
+						preserveNullAndEmptyArrays: true,
+					},
+				},
+				{
+					$unwind: {
+						path: '$backgroundInfo',
+						preserveNullAndEmptyArrays: true,
+					},
+				},
+				{
+					$group: {
+						_id: '$_id',
+						name: {
+							$last: '$name',
+						},
+						background: {
+							$last: '$background',
+						},
+						backgroundInfo: {
+							$last: '$backgroundInfo',
+						},
+						members: {
+							$addToSet: '$members',
+						},
+						lists: {
+							$last: '$lists',
+						},
+						labels: {
+							$addToSet: '$labels',
+						},
+						inviteLink: {
+							$last: '$inviteLink',
+						},
+						defaultRole: {
+							$last: '$defaultRole',
+						},
+					},
+				},
+				{
+					$project: {
+						_id: 1,
+						name: 1,
+						background: 1,
+						backgroundInfo: 1,
+						members: {
+							$sortArray: {
+								input: '$members',
+								sortBy: { _id: 1 },
+							},
+						},
+						lists: {
+							$sortArray: {
+								input: '$lists',
+								sortBy: { _id: 1 },
+							},
+						},
+						labels: {
+							$sortArray: {
+								input: '$labels',
+								sortBy: { _id: 1 },
+							},
+						},
+						inviteLink: 1,
+						defaultRole: 1,
+					},
+				},
+			])
+			.exec()
+
+		//@ts-ignore
+		if (Object.keys(board.labels[0]) == 0) board.labels = []
+		return board
+	}
+
 	async findAllBoards(): Promise<Board[]> {
 		return await this.model.find().exec()
 	}
@@ -50,10 +167,137 @@ export class BoardService {
 			.exec()
 	}
 
+	async aggregateBoardByUserId(_id: string): Promise<Board[]> {
+		const boards = await this.model
+			.aggregate([
+				{
+					$match: {
+						members: { $elemMatch: { userId: new Types.ObjectId(_id) } },
+					},
+				},
+				{
+					$lookup: {
+						from: 'backgrounds',
+						localField: 'background',
+						foreignField: '_id',
+						as: 'backgroundInfo',
+					},
+				},
+				{ $unwind: { path: '$members', preserveNullAndEmptyArrays: true } },
+				{
+					$lookup: {
+						from: 'users',
+						localField: 'members.userId',
+						foreignField: '_id',
+						as: 'members.userInfo',
+					},
+				},
+				{ $unwind: { path: '$labels', preserveNullAndEmptyArrays: true } },
+				{
+					$lookup: {
+						from: 'colors',
+						localField: 'labels.colorId',
+						foreignField: '_id',
+						as: 'labels.colorInfo',
+					},
+				},
+				{
+					$unwind: {
+						path: '$labels.colorInfo',
+						preserveNullAndEmptyArrays: true,
+					},
+				},
+				{
+					$unwind: {
+						path: '$members.userInfo',
+						preserveNullAndEmptyArrays: true,
+					},
+				},
+				{
+					$unwind: {
+						path: '$backgroundInfo',
+						preserveNullAndEmptyArrays: true,
+					},
+				},
+				{
+					$group: {
+						_id: '$_id',
+						name: {
+							$last: '$name',
+						},
+						background: {
+							$last: '$background',
+						},
+						backgroundInfo: {
+							$last: '$backgroundInfo',
+						},
+						members: {
+							$addToSet: '$members',
+						},
+						lists: {
+							$last: '$lists',
+						},
+						labels: {
+							$addToSet: '$labels',
+						},
+						inviteLink: {
+							$last: '$inviteLink',
+						},
+						defaultRole: {
+							$last: '$defaultRole',
+						},
+					},
+				},
+				{
+					$project: {
+						_id: 1,
+						name: 1,
+						background: 1,
+						backgroundInfo: 1,
+						members: {
+							$sortArray: {
+								input: '$members',
+								sortBy: { _id: 1 },
+							},
+						},
+						lists: {
+							$sortArray: {
+								input: '$lists',
+								sortBy: { _id: 1 },
+							},
+						},
+						labels: {
+							$sortArray: {
+								input: '$labels',
+								sortBy: { _id: 1 },
+							},
+						},
+						inviteLink: 1,
+						defaultRole: 1,
+					},
+				},
+			])
+			.sort('_id')
+			.exec()
+
+		const boardsRes = boards.map(board => {
+			// @ts-ignore
+			if (Object.keys(board.labels[0]) == 0) board.labels = []
+			return board
+		})
+
+		return boardsRes
+	}
+
 	async createBoard(createBoardInput: CreateBoardInput): Promise<Board> {
 		return await this.model.create({
 			name: createBoardInput.name,
-			members: { userId: new Types.ObjectId(createBoardInput.userId) },
+			members: {
+				userId: new Types.ObjectId(createBoardInput.userId),
+				role: new Types.ObjectId('655cd1c9dc7883f2632ccbcf'),
+			},
+			background: new Types.ObjectId(createBoardInput.backgroundId),
+			defaultRole: new Types.ObjectId('655ccee0dc7883f2632ccbce'),
 		})
 	}
 
@@ -71,9 +315,34 @@ export class BoardService {
 		return await this.model.findByIdAndDelete(_id).exec()
 	}
 
+	//Invite
+	async createInviteLink(_id: string): Promise<Board> {
+		const link = uuidv4()
+
+		return await this.model
+			.findByIdAndUpdate(_id, { inviteLink: link }, { new: true })
+			.exec()
+	}
+
+	async deleteInviteLink(_id: string): Promise<Board> {
+		return await this.model
+			.findByIdAndUpdate(_id, { inviteLink: null }, { new: true })
+			.exec()
+	}
+
+	async changeDefaultRole(input: ChangeDefaultRoleInput): Promise<Board> {
+		return await this.model
+			.findByIdAndUpdate(
+				input.boardId,
+				{ defaultRole: new Types.ObjectId(input.roleId) },
+				{ new: true },
+			)
+			.exec()
+	}
+
 	//Board labels
 	async createLabel(createLabelInput: CreateLabelInput): Promise<Board> {
-		return await this.model
+		await this.model
 			.findByIdAndUpdate(
 				createLabelInput.boardId,
 				{
@@ -87,10 +356,11 @@ export class BoardService {
 				{ new: true, upsert: true },
 			)
 			.exec()
+		return this.aggregateBoardById(createLabelInput.boardId)
 	}
 
 	async editLabel(editLabelInput: EditLabelInput): Promise<Board> {
-		return await this.model
+		await this.model
 			.findByIdAndUpdate(
 				editLabelInput.boardId,
 				{
@@ -108,10 +378,11 @@ export class BoardService {
 				},
 			)
 			.exec()
+		return this.aggregateBoardById(editLabelInput.boardId)
 	}
 
 	async deleteLabel(deleteLabelInput: DeleteLabelInput): Promise<Board> {
-		return await this.model
+		await this.model
 			.findByIdAndUpdate(
 				deleteLabelInput.boardId,
 				{
@@ -124,21 +395,23 @@ export class BoardService {
 				{ new: true, upsert: true },
 			)
 			.exec()
+		return this.aggregateBoardById(deleteLabelInput.boardId)
 	}
 
 	//Lists
 	async createList(createListInput: CreateListInput): Promise<Board> {
-		return await this.model
+		await this.model
 			.findByIdAndUpdate(
 				createListInput.boardId,
 				{ $push: { lists: { name: createListInput.name } } },
 				{ new: true },
 			)
 			.exec()
+		return this.aggregateBoardById(createListInput.boardId)
 	}
 
 	async renameList(renameListInput: RenameListInput): Promise<Board> {
-		return await this.model
+		await this.model
 			.findOneAndUpdate(
 				{
 					_id: renameListInput.boardId,
@@ -152,10 +425,11 @@ export class BoardService {
 				{ new: true },
 			)
 			.exec()
+		return this.aggregateBoardById(renameListInput.boardId)
 	}
 
 	async deleteList(deleteListInput: DeleteListInput): Promise<Board> {
-		return await this.model
+		await this.model
 			.findOneAndUpdate(
 				{
 					_id: deleteListInput.boardId,
@@ -167,6 +441,7 @@ export class BoardService {
 				},
 			)
 			.exec()
+		return this.aggregateBoardById(deleteListInput.boardId)
 	}
 
 	//Card
@@ -234,7 +509,7 @@ export class BoardService {
 		const firstCard = 'lists.$[list].cards.' + changeCardOrderInput.firstIndex
 		const secondCard = 'lists.$[list].cards.' + changeCardOrderInput.secondIndex
 
-		return await this.model
+		await this.model
 			.findByIdAndUpdate(
 				changeCardOrderInput.boardId,
 				{
@@ -250,6 +525,7 @@ export class BoardService {
 				},
 			)
 			.exec()
+		return this.aggregateBoardById(changeCardOrderInput.boardId)
 	}
 
 	async moveCard(moveCardInput: MoveCardInput): Promise<Board> {
@@ -292,7 +568,7 @@ export class BoardService {
 			cardId: moveCardInput.sourceCardId,
 		})
 
-		return await this.model
+		await this.model
 			.findOneAndUpdate(
 				{
 					_id: moveCardInput.boardId,
@@ -309,10 +585,11 @@ export class BoardService {
 				{ new: true, upsert: true },
 			)
 			.exec()
+		return this.aggregateBoardById(moveCardInput.boardId)
 	}
 
 	async createCard(createCardInput: CreateCardInput): Promise<Board> {
-		return await this.model
+		await this.model
 			.findOneAndUpdate(
 				{ _id: createCardInput.boardId, 'lists._id': createCardInput.listId },
 				{
@@ -325,10 +602,11 @@ export class BoardService {
 				{ new: true, upsert: true },
 			)
 			.exec()
+		return this.aggregateBoardById(createCardInput.boardId)
 	}
 
 	async renameCard(renameCardInput: RenameCardInput): Promise<Board> {
-		return await this.model
+		await this.model
 			.findOneAndUpdate(
 				{
 					_id: renameCardInput.boardId,
@@ -350,10 +628,13 @@ export class BoardService {
 				},
 			)
 			.exec()
+		return this.aggregateBoardById(renameCardInput.boardId)
 	}
 
-	async changeCardDescription(changeCardDescription: ChangeCardDescriptionInput): Promise<Board> {
-		return await this.model
+	async changeCardDescription(
+		changeCardDescription: ChangeCardDescriptionInput,
+	): Promise<Board> {
+		await this.model
 			.findOneAndUpdate(
 				{
 					_id: changeCardDescription.boardId,
@@ -361,7 +642,8 @@ export class BoardService {
 				},
 				{
 					$set: {
-						'lists.$.cards.$[card].description': changeCardDescription.description,
+						'lists.$.cards.$[card].description':
+							changeCardDescription.description,
 					},
 				},
 				{
@@ -375,10 +657,40 @@ export class BoardService {
 				},
 			)
 			.exec()
+		return this.aggregateBoardById(changeCardDescription.boardId)
+	}
+
+	async changeCardDate(
+		changeCardDateInput: ChangeCardDateInput,
+	): Promise<Board> {
+		await this.model
+			.findOneAndUpdate(
+				{
+					_id: changeCardDateInput.boardId,
+					'lists._id': changeCardDateInput.listId,
+				},
+				{
+					$set: {
+						'lists.$.cards.$[card].startDate': changeCardDateInput.startDate,
+						'lists.$.cards.$[card].dueDate': changeCardDateInput.dueDate,
+					},
+				},
+				{
+					new: true,
+					upsert: true,
+					arrayFilters: [
+						{
+							'card._id': changeCardDateInput.cardId,
+						},
+					],
+				},
+			)
+			.exec()
+		return this.aggregateBoardById(changeCardDateInput.boardId)
 	}
 
 	async deleteCard(deleteCardInput: DeleteCardInput): Promise<Board> {
-		return await this.model
+		await this.model
 			.findOneAndUpdate(
 				{
 					_id: deleteCardInput.boardId,
@@ -399,15 +711,14 @@ export class BoardService {
 				},
 			)
 			.exec()
+		return this.aggregateBoardById(deleteCardInput.boardId)
 	}
 
 	//Card labels
 	async addLabelToCard(
 		addLabelToCardInput: AddLabelToCardInput,
 	): Promise<Board> {
-		console.log(addLabelToCardInput)
-
-		return await this.model
+		await this.model
 			.findOneAndUpdate(
 				{
 					_id: addLabelToCardInput.boardId,
@@ -431,12 +742,13 @@ export class BoardService {
 				},
 			)
 			.exec()
+		return this.aggregateBoardById(addLabelToCardInput.boardId)
 	}
 
 	async deleteLabelFromCard(
 		deleteLabelFromCardInput: DeleteLabelFromCardInput,
 	): Promise<Board> {
-		return await this.model
+		await this.model
 			.findByIdAndUpdate(
 				deleteLabelFromCardInput.boardId,
 				{
@@ -459,13 +771,14 @@ export class BoardService {
 				},
 			)
 			.exec()
+		return this.aggregateBoardById(deleteLabelFromCardInput.boardId)
 	}
 
 	//Users
 	async addMemberToBoard(
 		addMemberToBoardInput: AddMemberToBoardInput,
 	): Promise<Board> {
-		return await this.model
+		await this.model
 			.findByIdAndUpdate(
 				addMemberToBoardInput.boardId,
 				{
@@ -481,12 +794,13 @@ export class BoardService {
 				},
 			)
 			.exec()
+		return this.aggregateBoardById(addMemberToBoardInput.boardId)
 	}
 
 	async deleteMemberFromBoard(
 		deleteMemberFromBoardInput: DeleteMemberFromBoardInput,
 	): Promise<Board> {
-		return await this.model
+		await this.model
 			.findByIdAndUpdate(
 				deleteMemberFromBoardInput.boardId,
 				{
@@ -502,5 +816,38 @@ export class BoardService {
 				},
 			)
 			.exec()
+		return this.aggregateBoardById(deleteMemberFromBoardInput.boardId)
+	}
+
+	async getMemberByUserId(
+		boardId: string,
+		userId: string,
+	): Promise<Member | null> {
+		const board = await this.model
+			.findOne({
+				_id: boardId,
+				'members.userId': new Types.ObjectId(userId),
+			})
+			.exec()
+		if (!board) return null
+
+		const member = board
+			.toObject()
+			.members.filter(member => member.userId.toString() === userId)[0]
+
+		return member
+	}
+
+	async checkUserHasAccess(
+		boardId: string,
+		userId: Types.ObjectId,
+	): Promise<boolean> {
+		const board = await this.model
+			.findOne({
+				_id: boardId,
+				'members.userId': userId,
+			})
+			.exec()
+		return !!board
 	}
 }

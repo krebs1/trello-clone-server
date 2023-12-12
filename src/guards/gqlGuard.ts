@@ -17,7 +17,7 @@ export class GqlGuard implements CanActivate {
 		const token = this.extractTokenFromCookie(request)
 
 		if (!token) {
-			throw new UnauthorizedException()
+			throw new UnauthorizedException('Вы не авторизованы')
 		}
 
 		return this.sessionService.validate(token)

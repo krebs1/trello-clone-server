@@ -7,9 +7,11 @@ import { ConfigModule } from '@nestjs/config'
 import { BoardModule } from './board/board.module'
 import { ColorModule } from './color/color.module'
 import { SessionModule } from './session/session.module'
-import { BackgroundModule } from './background/background.module';
+import { BackgroundModule } from './background/background.module'
 import * as process from 'process'
 import { ServeStaticModule } from '@nestjs/serve-static'
+import { RoleModule } from './role/role.module';
+import { UserModule } from './user/user.module';
 
 @Module({
 	imports: [
@@ -22,7 +24,7 @@ import { ServeStaticModule } from '@nestjs/serve-static'
 		}),
 		GraphQLModule.forRoot<ApolloDriverConfig>({
 			driver: ApolloDriver,
-			autoSchemaFile: join(process.cwd(), 'src/schemas.gql'),
+			autoSchemaFile: join(process.cwd(), 'src/models.gql'),
 			sortSchema: true,
 			//cors: {origin: true, credentials: true},
 			subscriptions: {
@@ -32,12 +34,14 @@ import { ServeStaticModule } from '@nestjs/serve-static'
 			context: ({ req, res }) => ({ req, res }),
 		}),
 		ServeStaticModule.forRoot({
-			rootPath: join(__dirname, '..', 'public', 'backgrounds')
+			rootPath: join(__dirname, '..', 'public', 'backgrounds'),
 		}),
 		BoardModule,
 		ColorModule,
 		SessionModule,
 		BackgroundModule,
+		RoleModule,
+		UserModule,
 	],
 	controllers: [],
 	providers: [],

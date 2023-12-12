@@ -7,4 +7,7 @@ export class CreateBoardInput {
 
 	@Field({ description: 'User id' })
 	userId: string
+
+	@Field({ description: 'Background id' })
+	backgroundId: string
 }

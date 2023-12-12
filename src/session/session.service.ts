@@ -9,6 +9,13 @@ export class SessionService {
 		@InjectModel(Session.name) private readonly model: Model<SessionDocument>,
 	) {}
 
+	async getSessionByToken(sessionToken: string): Promise<Session> {
+		const x = await this.model
+			.findOne({ sessionToken: sessionToken })
+			.exec()
+		return x.toObject()
+	}
+
 	async validate(sessionToken: string): Promise<boolean> {
 		const session = await this.model
 			.findOne({ sessionToken: sessionToken })

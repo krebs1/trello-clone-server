@@ -6,11 +6,15 @@ import { Model } from 'mongoose'
 @Injectable()
 export class BackgroundService {
 	constructor(
-		@InjectModel(Background.name) private readonly model: Model<BackgroundDocument>,
-	) {
+		@InjectModel(Background.name)
+		private readonly model: Model<BackgroundDocument>,
+	) {}
+
+	async findAllBackgrounds(): Promise<Background[]> {
+		return await this.model.find().exec()
 	}
 
-	async findAllBackgrounds():Promise<Background[]>{
-		return await this.model.find().exec()
+	async findBackgroundById(_id: string):Promise<Background>{
+		return await this.model.findById(_id).exec();
 	}
 }
